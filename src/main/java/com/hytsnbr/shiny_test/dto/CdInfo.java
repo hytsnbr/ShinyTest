@@ -23,6 +23,7 @@ import com.fasterxml.jackson.datatype.jsr310.deser.LocalDateDeserializer;
     "limited",
     "series",
     "artist",
+    "trackList",
     "downloadSiteList",
     "purchaseSiteList"
 })
@@ -54,6 +55,9 @@ public class CdInfo {
     /** アーティスト名 */
     private final String artist;
     
+    /** 楽曲リスト */
+    private final List<TrackInfo> trackList;
+    
     /** ダウンロード・ストリーミングサイトリスト */
     private final List<StoreSite> downloadSiteList;
     
@@ -70,6 +74,7 @@ public class CdInfo {
         limited = builder.limited;
         series = builder.series;
         artist = builder.artist;
+        trackList = builder.trackList;
         downloadSiteList = builder.downloadSiteList;
         purchaseSiteList = builder.purchaseSiteList;
     }
@@ -104,6 +109,12 @@ public class CdInfo {
         if (this.limited != cdInfo.limited) return false;
         if (!StringUtils.equals(this.series, cdInfo.series)) return false;
         if (!StringUtils.equals(this.artist, cdInfo.artist)) return false;
+        if (this.trackList.size() != cdInfo.trackList.size()) return false;
+        for (var trackInfo : cdInfo.trackList) {
+            if (!this.trackList.contains(trackInfo)) {
+                return false;
+            }
+        }
         if (this.downloadSiteList.size() != cdInfo.downloadSiteList.size()) return false;
         for (var storeSite : cdInfo.downloadSiteList) {
             if (!this.downloadSiteList.contains(storeSite)) {
@@ -161,6 +172,11 @@ public class CdInfo {
     }
     
     @SuppressWarnings("unused")
+    public List<TrackInfo> getTrackList() {
+        return Objects.nonNull(this.trackList) ? this.trackList : List.of();
+    }
+    
+    @SuppressWarnings("unused")
     public List<StoreSite> getDownloadSiteList() {
         return Objects.nonNull(this.downloadSiteList) ? this.downloadSiteList : List.of();
     }
@@ -189,6 +205,8 @@ public class CdInfo {
         private String series;
         
         private String artist;
+        
+        private List<TrackInfo> trackList;
         
         private List<StoreSite> downloadSiteList;
         
@@ -249,6 +267,13 @@ public class CdInfo {
         @SuppressWarnings("UnusedReturnValue")
         public CdInfoBuilder artist(String artist) {
             this.artist = artist;
+            return this;
+        }
+        
+        /** 楽曲リスト */
+        @SuppressWarnings("UnusedReturnValue")
+        public CdInfoBuilder trackList(List<TrackInfo> trackList) {
+            this.trackList = trackList;
             return this;
         }
         

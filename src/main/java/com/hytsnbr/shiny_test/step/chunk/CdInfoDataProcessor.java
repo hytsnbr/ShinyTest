@@ -12,11 +12,13 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
+import java.util.regex.Pattern;
 
 import org.apache.commons.lang3.StringUtils;
 import org.jsoup.HttpStatusException;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.TextNode;
+import org.jsoup.select.Elements;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.batch.item.ItemProcessor;
@@ -27,6 +29,7 @@ import com.hytsnbr.shiny_test.constant.Store;
 import com.hytsnbr.shiny_test.dto.CdInfo;
 import com.hytsnbr.shiny_test.dto.DiscographyData;
 import com.hytsnbr.shiny_test.dto.StoreSite;
+import com.hytsnbr.shiny_test.dto.TrackInfo;
 import com.hytsnbr.shiny_test.exception.CdInfoWebScrapingException;
 import com.hytsnbr.shiny_test.util.JsoupUtil;
 
@@ -130,6 +133,10 @@ public class CdInfoDataProcessor implements ItemProcessor<DiscographyData, CdInf
             }
         }
         
+        // 楽曲情報リストを取得
+        var trackInfoList = this.getTrackList(infoTexts);
+        cdInfoBuilder.trackList(trackInfoList);
+        
         var storeLinkPageList = infoTexts.select(".shopbanc > .banshopint");
         // ショップサイトのリンクが無い場合は限定販売とする
         if (storeLinkPageList.isEmpty()) {
@@ -190,6 +197,34 @@ public class CdInfoDataProcessor implements ItemProcessor<DiscographyData, CdInf
         logger.info("CD Artist Name: {}", artistText);
         
         return artistText;
+    }
+    
+    /**
+     * 楽曲情報リストを取得する
+     */
+    private List<TrackInfo> getTrackList(Elements infoTexts) {
+        List<TrackInfo> trackInfoList = new ArrayList<>();
+        final var trackPattern = Pattern.compile("^(\\d)．(.+)");
+        for (var trackText : infoTexts.select("p")) {
+            final var matcher = trackPattern.matcher(trackText.childNode(0).toString());
+            if (!matcher.find()) {
+                continue;
+            }
+            
+            final var trackName = matcher.group(2);
+            final var trackNo = Integer.parseInt(matcher.group(1));
+            final var isOffVocal = StringUtils.contains(trackName, "Off Vocal");
+            final var isVoiceDrama = StringUtils.contains(trackName, "オーディオドラマ");
+            var trackInfo = TrackInfo.builder()
+                                     .trackName(trackName)
+                                     .trackNo(trackNo)
+                                     .isOffVocal(isOffVocal)
+                                     .isVoiceDrama(isVoiceDrama)
+                                     .build();
+            trackInfoList.add(trackInfo);
+        }
+        
+        return trackInfoList;
     }
     
     /**
