@@ -222,6 +222,9 @@ public class CdInfoDataProcessor implements ItemProcessor<DiscographyData, CdInf
                                      .isVoiceDrama(isVoiceDrama)
                                      .build();
             trackInfoList.add(trackInfo);
+            logger.info("Track No.{}: {} / オフボーカル？：{} , オーディオドラマ？：{}",
+                trackNo, trackName, isOffVocal, isVoiceDrama
+            );
         }
         
         return trackInfoList;
